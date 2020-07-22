@@ -1,8 +1,7 @@
-
 /**
  * Function To Speak out the passed message
  */
-function Speak(message){
+function Speak(message) {
     var msg = new SpeechSynthesisUtterance();
     msg.text = message;
     window.speechSynthesis.speak(msg);
@@ -23,7 +22,7 @@ class captchaV1 {
 
         // Check If Text To Speach is Enabled In Browser 
         try {
-            if(args.tts){
+            if (args.tts) {
                 if ('speechSynthesis' in window) {
                     // Speech Synthesis supported 🎉
                 } else {
@@ -51,5 +50,61 @@ class captchaV1 {
 
             });
         });
+
+
+        
+        // Create Browser Finger Print
+        this.deviceFingerPrint = null;
+        if (window.requestIdleCallback) {
+            requestIdleCallback(function () {
+                new Fingerprint2.get(function (components) {
+                    var values = components.map(function (component) {
+                        return component.value;
+                    });
+                    var murmur = Fingerprint2.x64hash128(values.join(''), 31);
+                    console.log(murmur);
+                    this.deviceFingerPrint = murmur;
+                });
+            });
+        } else {
+            setTimeout(function () {
+                new Fingerprint2.get(function (components) {
+                    var values = components.map(function (component) {
+                        return component.value;
+                    });
+                    var murmur = Fingerprint2.x64hash128(values.join(''), 31);
+                    console.log(murmur);
+                    this.deviceFingerPrint = murmur;
+                });
+            }, 500);
+        }
+
+
+        // Add Solve Captcha Button at end of the form
+        var button = `<button type="button" id="captchaV1" class="btn btn-danger">Are You A Human?</button>`;
+        this.isCaptchaSolved = false;
+        try {
+            if (args.tts) {
+                var button = `<button type="button" id="captchaV1" class="btn btn-danger" data-toSpeak="Please Solve Captcha">Are You A Human?</button>`;
+                this.form.append(button);
+            } else {
+                this.form.append(button);
+            }
+        } catch (error) {
+            console.log();
+        }
+
+        // Text To Speak For Captcha Button 
+        try {
+            if (args.tts) {
+                $("#captchaV1").click(function () {
+                    Speak("Please Solve Captcha");
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+
+
     }
 }
