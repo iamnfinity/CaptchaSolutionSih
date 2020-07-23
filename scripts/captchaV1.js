@@ -7,7 +7,23 @@ function Speak(message) {
     window.speechSynthesis.speak(msg);
 }
 
+/**
+ * Create Device Fingerprint
+ */
+async function getFingerprint(){
+    console.log("Generating");
+    const fingerprint = await Fingerprint2.getPromise().then(function (components) {
+        var values = components.map(function (component) {return component.value});
+        var murmur = Fingerprint2.x64hash128(values.join(''), 31);
+        return murmur;
+    });
+    return fingerprint;
+}
+
 class captchaV1 {
+
+
+
     /**
      * Starts all the fuctions
      * @param {Form ID of Form} formID 
@@ -52,43 +68,48 @@ class captchaV1 {
         });
 
 
-        
+
         // Create Browser Finger Print
         this.deviceFingerPrint = null;
         if (window.requestIdleCallback) {
             requestIdleCallback(function () {
-                new Fingerprint2.get(function (components) {
-                    var values = components.map(function (component) {
-                        return component.value;
-                    });
-                    var murmur = Fingerprint2.x64hash128(values.join(''), 31);
-                    console.log(murmur);
-                    this.deviceFingerPrint = murmur;
-                });
+                // new Fingerprint2.get(function (components) {
+                //     console.log("First One");
+                //     var values = components.map(function (component) {
+                //         return component.value;
+                //     });
+                //     var murmur = Fingerprint2.x64hash128(values.join(''), 31);
+                //     this.deviceFingerPrint = murmur;
+                // });
+                
+
             });
         } else {
             setTimeout(function () {
                 new Fingerprint2.get(function (components) {
+                    console.log("Second One");
                     var values = components.map(function (component) {
                         return component.value;
                     });
                     var murmur = Fingerprint2.x64hash128(values.join(''), 31);
-                    console.log(murmur);
-                    this.deviceFingerPrint = murmur;
+                    if (this.deviceFingerPrint == null) {
+                        this.deviceFingerPrint = murmur;
+                    }
                 });
             }, 500);
         }
 
 
-        // Add Solve Captcha Button at end of the form
+        // Add Solve Captcha Button in captcha Div in form
         var button = `<button type="button" id="captchaV1" class="btn btn-danger">Are You A Human?</button>`;
         this.isCaptchaSolved = false;
+        this.captchaButton = $(formID + " > #captcha");
         try {
             if (args.tts) {
                 var button = `<button type="button" id="captchaV1" class="btn btn-danger" data-toSpeak="Please Solve Captcha">Are You A Human?</button>`;
-                this.form.append(button);
+                this.captchaButton.append(button);
             } else {
-                this.form.append(button);
+                this.captchaButton.append(button);
             }
         } catch (error) {
             console.log();
@@ -97,8 +118,9 @@ class captchaV1 {
         // Text To Speak For Captcha Button 
         try {
             if (args.tts) {
-                $("#captchaV1").click(function () {
+                $("#captchaV1").click(async function () {
                     Speak("Please Solve Captcha");
+                    alert(await getFingerprint());
                 });
             }
         } catch (error) {
